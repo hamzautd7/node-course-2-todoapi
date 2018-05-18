@@ -6,7 +6,6 @@ var db = {
     mlab: 'mongodb://banda:123456@ds016068.mlab.com:16068/todos'
 };
 var x = 'mongodb://banda:123456@ds016068.mlab.com:16068/todos';
-mongoose.connect( process.env.x );
-
+mongoose.connect( process.env.x || db.localhost);
 
 module.exports = {mongoose};
