@@ -1,7 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var {ObjectID} = require('mongodb');
-
+var _ = require('lodash');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/Todo');
 var {User} = require('./models/User');
@@ -63,9 +63,37 @@ Todo.findByIdAndRemove(id).then((todo)=>{
     res.status(200).send(todo);
 
 }).catch((e)=>{
-  console.log(e);
+  res.status(400).send(e);
 })
 });
+
+app.patch('/todos/:id', (req, res)=>{
+  var id = req.params.id;
+  var body =req.body ;
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send("ID NOT VALID");
+  }
+  if(_.isBoolean(body.completed) && body.completed)
+  body.completedAt = new Date().getTime();
+  else{
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((doc)=>{
+    if(!doc)
+    return res.status(404).send();
+    
+    res.send({todo: doc});
+    
+  },(e)=>{
+    res.status(400).send(e);
+  })
+})
+
+
+
+
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);
