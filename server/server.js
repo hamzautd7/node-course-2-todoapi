@@ -69,7 +69,7 @@ Todo.findByIdAndRemove(id).then((todo)=>{
 
 app.patch('/todos/:id', (req, res)=>{
   var id = req.params.id;
-  var body =req.body ;
+  var body =_.pick(req.body['text', 'completed']) ;
   if (!ObjectID.isValid(id)) {
     return res.status(404).send("ID NOT VALID");
   }
@@ -87,6 +87,22 @@ app.patch('/todos/:id', (req, res)=>{
     res.send({todo: doc});
     
   },(e)=>{
+    res.status(400).send(e);
+  })
+})
+
+app.post('/users', (req, res)=>{
+  //console.log('req.body'+ JSON.stringify(req.body, undefined, 2));
+  //var userbody = _.pick(req.body,['email', 'password']);
+  //console.log('body'+ JSON.stringify(userbody, undefined, 2));
+  var {email, password} = req.body;
+  var user = new User({email,password});
+
+  user.save().then(()=>{
+    return user.generateAuthToken();
+  }).then((token)=>{
+    res.header('x-auth', token).send(user);
+  }).catch((e)=>{
     res.status(400).send(e);
   })
 })
