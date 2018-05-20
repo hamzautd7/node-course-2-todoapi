@@ -8,6 +8,7 @@ var {User} = require('./models/User');
 var {authenticate} = require('./middleware/authenticate');
 var app = express();
 const port = process.env.PORT || 3000;
+const bcrypt = require('bcryptjs');
 
 app.use(bodyParser.json());
 
@@ -107,12 +108,28 @@ app.post('/users', (req, res)=>{
   })
 });
 
-
-
 app.get('/users/me',authenticate, (req,res) =>{
     res.send(req.user);
 });
 
+
+app.post('/users/login', (req, res) =>{
+  var {email, password} = req.body;
+  User.findByCredentials(email,password).then((user)=>{
+    return user.generateAuthToken().then((token)=>{
+      res.header('x-auth', token).send(user);
+    })
+  }).catch((e)=>{
+    res.status(400).send()
+  })
+});
+app.delete('users/me/token',authenticate,  (req,res)=>{
+req.user.removetoken(req.token).then(()=>{
+  res.send();
+}).catch((e)=>{
+  res.status(400).send(e)
+})
+})
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);
